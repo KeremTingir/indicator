@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html class="dark" lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Deney Sonuç Ekranı - pH Etkileşimli Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#256af4",
+              "background-light": "#f5f6f8",
+              "background-dark": "#0a0f1a",
+            },
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      :root {
+        --acid-red: #ef4444;
+        --acid-glow: rgba(239, 68, 68, 0.4);
+        --base-blue: #3b82f6;
+        --base-glow: rgba(59, 130, 246, 0.4);
+        --neutral-glow: rgba(148, 163, 184, 0.4);
+      }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .glass-card {
+        background: rgba(16, 22, 34, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .flask-container {
+        filter: drop-shadow(0 0 40px var(--acid-glow));
+      }
+      .liquid-fill {
+        background: linear-gradient(180deg, #ff1e1e 0%, #7f1d1d 100%);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        height: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+      }
+      body {
+        scroll-behavior: smooth;
+      }
+      .ph-indicator {
+        transition: left 0.6s cubic-bezier(0.22, 0.61, 0.36, 1),
+          background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+      .flask-float {
+        animation: float 7s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-dark text-white min-h-screen flex flex-col overflow-hidden"
+  >
+    <main class="flex-1 relative flex items-center justify-center p-6">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          class="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[120px]"
+        ></div>
+        <div
+          class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]"
+        ></div>
+      </div>
+
+      <div
+        class="container max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-16 relative z-10"
+      >
+        <!-- Sol: Kap -->
+        <div class="relative flask-container flask-float group">
+          <div class="w-72 h-96 relative">
+            <div
+              class="absolute bottom-0 w-full h-80 border-4 border-white/20 rounded-b-[120px] rounded-t-[40px] overflow-hidden backdrop-blur-[2px]"
+            >
+              <div
+                id="liquid-fill"
+                class="absolute bottom-0 left-0 right-0 h-[75%] liquid-fill shadow-[inset_0_15px_30px_rgba(0,0,0,0.3)]"
+              >
+                <div
+                  class="absolute bottom-10 left-1/4 w-3 h-3 bg-white/30 rounded-full"
+                ></div>
+                <div
+                  class="absolute bottom-32 left-1/2 w-4 h-4 bg-white/20 rounded-full"
+                ></div>
+                <div
+                  class="absolute bottom-20 right-1/4 w-2 h-2 bg-white/40 rounded-full"
+                ></div>
+              </div>
+            </div>
+            <div
+              class="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-24 border-x-4 border-white/20"
+            ></div>
+            <div
+              class="absolute -top-4 left-1/2 -translate-x-1/2 w-24 h-4 border-4 border-white/20 rounded-full"
+            ></div>
+          </div>
+
+          <div
+            id="reaction-badge"
+            class="absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-500 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase shadow-lg shadow-red-500/40"
+          >
+            Reaksiyon Tamamlandı
+          </div>
+        </div>
+
+        <!-- Sağ: Sonuç kartı -->
+        <div
+          class="glass-card p-8 md:p-10 rounded-[2rem] w-full max-w-md shadow-2xl border-white/20"
+        >
+          <div class="flex items-center gap-4 mb-8">
+            <div
+              id="icon-wrapper"
+              class="size-12 md:size-14 rounded-2xl bg-red-500/20 flex items-center justify-center border border-red-500/30"
+            >
+              <span
+                class="material-symbols-outlined text-red-500 text-2xl md:text-3xl"
+                id="result-icon"
+              >
+                science
+              </span>
+            </div>
+            <div>
+              <h1
+                id="result-type-label"
+                class="text-xs md:text-sm font-bold text-red-400 uppercase tracking-widest"
+              >
+                Deney Sonucu
+              </h1>
+              <p
+                id="result-title"
+                class="text-2xl md:text-3xl font-bold"
+              >
+                Limon (Sitrik Asit)
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-8">
+            <div
+              class="flex justify-between items-end border-b border-white/10 pb-6"
+            >
+              <div>
+                <p class="text-slate-400 text-sm mb-1 font-medium">Tür</p>
+                <p
+                  id="result-kind"
+                  class="text-2xl font-bold text-white"
+                >
+                  Sonuç: Asit
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-slate-400 text-sm mb-1 font-medium">
+                  pH Değeri
+                </p>
+                <p
+                  id="result-ph"
+                  class="text-4xl md:text-5xl font-black text-white"
+                >
+                  2.4
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div
+                class="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider"
+              >
+                <span>Asidik</span>
+                <span>Nötr</span>
+                <span>Bazik</span>
+              </div>
+              <div
+                class="h-4 w-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-blue-400 to-purple-600 relative overflow-visible"
+              >
+                <div
+                  id="ph-indicator"
+                  class="ph-indicator absolute -top-2 -bottom-2 w-1.5 bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)] rounded-full z-10"
+                  style="left: 17%"
+                ></div>
+              </div>
+            </div>
+
+            <p
+              id="result-description"
+              class="text-slate-300 leading-relaxed text-sm bg-white/5 p-4 rounded-xl border border-white/5"
+            >
+              Limon suyu yüksek oranda sitrik asit içerir. Suya bırakılan
+              hidrojen iyonları çözeltinin pH dengesini düşürerek belirteç
+              rengini parlak kırmızıya dönüştürür.
+            </p>
+
+            <div class="flex gap-3">
+              <button
+                class="flex-1 bg-white text-background-dark font-bold py-3 md:py-4 rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                onclick="window.location.href='index.html'"
+              >
+                <span class="material-symbols-outlined text-xl">refresh</span>
+                Yeni Deney
+              </button>
+              <button
+                class="size-12 md:size-14 bg-white/10 rounded-2xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"
+                title="URL'yi panoya kopyala"
+                onclick="navigator.clipboard && navigator.clipboard.writeText(window.location.href)"
+              >
+                <span class="material-symbols-outlined">share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="p-6 md:p-8 relative z-20">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex items-center justify-between mb-4 px-2">
+          <h3
+            class="text-xs font-bold uppercase tracking-widest text-slate-400"
+          >
+            Deney Maddeleri
+          </h3>
+          <span class="text-[10px] text-slate-500">
+            Kaydırarak seçim yapın
+          </span>
+        </div>
+
+        <div
+          class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x"
+        >
+          <!-- Limon -->
+          <button
+            class="snap-start min-w-[120px] p-4 bg-red-500/20 border-2 border-red-500 rounded-2xl flex flex-col items-center gap-3"
+            onclick="changeSubstance('limon')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-yellow-400">
+                nutrition
+              </span>
+            </div>
+            <span class="text-xs font-bold">Limon</span>
+          </button>
+
+          <!-- Sirke -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('sirke')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-orange-300">
+                water_drop
+              </span>
+            </div>
+            <span class="text-xs font-bold">Sirke</span>
+          </button>
+
+          <!-- Süt (hafif asidik / nötre yakın örnek) -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('sut')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-slate-200">
+                local_drink
+              </span>
+            </div>
+            <span class="text-xs font-bold">Süt</span>
+          </button>
+
+          <!-- Saf Su -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('su')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-cyan-300">
+                opacity
+              </span>
+            </div>
+            <span class="text-xs font-bold">Saf Su</span>
+          </button>
+
+          <!-- Sabun -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('sabun')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-blue-300">
+                soap
+              </span>
+            </div>
+            <span class="text-xs font-bold">Sabun</span>
+          </button>
+
+          <!-- Amonyak -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('amonyak')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-indigo-300">
+                science
+              </span>
+            </div>
+            <span class="text-xs font-bold">Amonyak</span>
+          </button>
+
+          <!-- Kostik -->
+          <button
+            class="snap-start min-w-[120px] p-4 glass-card border-white/5 rounded-2xl flex flex-col items-center gap-3 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+            onclick="changeSubstance('kostik')"
+          >
+            <div
+              class="size-12 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-purple-300">
+                bolt
+              </span>
+            </div>
+            <span class="text-xs font-bold">Kostik</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const SUBSTANCE_DATA = {
+        limon: {
+          name: "Limon",
+          formula: "Sitrik Asit",
+          kind: "Asit",
+          ph: 2.4,
+          description:
+            "Limon suyu yüksek oranda sitrik asit içerir. Suya bırakılan hidrojen iyonları çözeltinin pH dengesini düşürerek belirteç rengini parlak kırmızıya dönüştürür.",
+          icon: "nutrition",
+          theme: "acid",
+        },
+        sirke: {
+          name: "Sirke",
+          formula: "Asetik Asit",
+          kind: "Asit",
+          ph: 3.0,
+          description:
+            "Sirke, içerisinde bulunan asetik asit sayesinde asidik özellik gösterir. Turnusol kağıdını kırmızıya dönüştürerek asitliğini kanıtlar.",
+          icon: "water_drop",
+          theme: "acid",
+        },
+        sut: {
+          name: "Süt",
+          formula: "Laktik Asit (zayıf asidik)",
+          kind: "Zayıf Asit",
+          ph: 6.5,
+          description:
+            "Süt, içindeki laktik asit nedeniyle hafif asidiktir. pH değeri nötre yakın olduğundan belirteçte çok keskin bir renk değişimi görülmez.",
+          icon: "local_drink",
+          theme: "neutral",
+        },
+        su: {
+          name: "Saf Su",
+          formula: "H₂O",
+          kind: "Nötr",
+          ph: 7.0,
+          description:
+            "Saf su, hidrojen ve hidroksit iyonlarının derişimleri eşit olduğu için nötrdür. Turnusol kağıdında belirgin bir renk değişimi oluşturmaz.",
+          icon: "opacity",
+          theme: "neutral",
+        },
+        sabun: {
+          name: "Sabun",
+          formula: "Alkali Çözelti",
+          kind: "Baz",
+          ph: 9.5,
+          description:
+            "Sabun çözeltisi, içerdiği bazik maddeler nedeniyle hidroksit iyonu yoğunluğu yüksek bir çözeltidir. Turnusol kağıdını maviye dönüştürür.",
+          icon: "soap",
+          theme: "base",
+        },
+        amonyak: {
+          name: "Amonyak",
+          formula: "NH₃",
+          kind: "Baz",
+          ph: 11.0,
+          description:
+            "Amonyak, suda çözündüğünde bazik özellik kazanır. pH değeri yüksektir ve belirteç rengini maviye kaydırır.",
+          icon: "science",
+          theme: "base",
+        },
+        kostik: {
+          name: "Kostik",
+          formula: "Sodyum Hidroksit (NaOH)",
+          kind: "Güçlü Baz",
+          ph: 13.5,
+          description:
+            "Kostik soda çok güçlü bir bazdır. Çözeltideki hidroksit iyonları çok yoğun olduğundan pH değeri çok yüksektir ve belirtecin rengini koyu mavi-mor aralığına taşır.",
+          icon: "bolt",
+          theme: "base",
+        },
+      };
+
+      function mapPhToPosition(ph) {
+        const clamped = Math.max(0, Math.min(14, ph));
+        const percent = (clamped / 14) * 100;
+        const min = 3;
+        const max = 97;
+        return min + ((percent / 100) * (max - min));
+      }
+
+      function applyTheme(theme) {
+        const badge = document.getElementById("reaction-badge");
+        const iconWrapper = document.getElementById("icon-wrapper");
+        const typeLabel = document.getElementById("result-type-label");
+        const indicator = document.getElementById("ph-indicator");
+        const liquid = document.getElementById("liquid-fill");
+        const root = document.documentElement;
+
+        const acid = theme === "acid";
+        const base = theme === "base";
+        const neutral = theme === "neutral";
+
+        if (badge) {
+          badge.className =
+            "absolute -top-12 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase shadow-lg " +
+            (acid
+              ? "bg-red-500 shadow-red-500/40"
+              : base
+              ? "bg-blue-500 shadow-blue-500/40"
+              : "bg-slate-500 shadow-slate-500/40");
+        }
+
+        if (iconWrapper && typeLabel) {
+          if (acid) {
+            iconWrapper.className =
+              "size-12 md:size-14 rounded-2xl bg-red-500/20 flex items-center justify-center border border-red-500/30";
+            typeLabel.className =
+              "text-xs md:text-sm font-bold text-red-400 uppercase tracking-widest";
+          } else if (base) {
+            iconWrapper.className =
+              "size-12 md:size-14 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30";
+            typeLabel.className =
+              "text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest";
+          } else {
+            iconWrapper.className =
+              "size-12 md:size-14 rounded-2xl bg-slate-500/20 flex items-center justify-center border border-slate-500/30";
+            typeLabel.className =
+              "text-xs md:text-sm font-bold text-slate-300 uppercase tracking-widest";
+          }
+        }
+
+        if (indicator) {
+          if (acid) {
+            indicator.style.backgroundColor = "#f97373"; // kırmızı ton
+            indicator.style.boxShadow = "0 0 16px rgba(248,113,113,0.9)";
+          } else if (base) {
+            indicator.style.backgroundColor = "#60a5fa"; // mavi ton
+            indicator.style.boxShadow = "0 0 16px rgba(96,165,250,0.9)";
+          } else {
+            indicator.style.backgroundColor = "#a3e635"; // nötr/yeşil ton
+            indicator.style.boxShadow = "0 0 16px rgba(163,230,53,0.9)";
+          }
+        }
+
+        if (liquid) {
+          if (acid) {
+            liquid.style.background =
+              "linear-gradient(180deg, #ff1e1e 0%, #7f1d1d 100%)";
+          } else if (base) {
+            liquid.style.background =
+              "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)";
+          } else {
+            liquid.style.background =
+              "linear-gradient(180deg, #22c55e 0%, #15803d 100%)";
+          }
+        }
+
+        if (root) {
+          if (acid) {
+            root.style.setProperty("--acid-glow", "rgba(239,68,68,0.4)");
+          } else if (base) {
+            root.style.setProperty("--acid-glow", "rgba(59,130,246,0.4)");
+          } else {
+            root.style.setProperty("--acid-glow", "rgba(148,163,184,0.4)");
+          }
+        }
+      }
+
+      function updateUI(key) {
+        const data = SUBSTANCE_DATA[key] || SUBSTANCE_DATA["limon"];
+
+        const title = document.getElementById("result-title");
+        const kind = document.getElementById("result-kind");
+        const ph = document.getElementById("result-ph");
+        const description = document.getElementById("result-description");
+        const indicator = document.getElementById("ph-indicator");
+        const icon = document.getElementById("result-icon");
+
+        if (title)
+          title.textContent = `${data.name} (${data.formula})`;
+        if (kind)
+          kind.textContent = `Sonuç: ${data.kind}`;
+        if (ph)
+          ph.textContent = data.ph.toString();
+        if (description)
+          description.textContent = data.description;
+        if (indicator)
+          indicator.style.left = mapPhToPosition(data.ph) + "%";
+        if (icon)
+          icon.textContent = data.icon;
+
+        applyTheme(data.theme);
+      }
+
+      function changeSubstance(key) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("madde", key);
+        window.history.replaceState({}, "", url.toString());
+        updateUI(key);
+      }
+
+      (function initFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const key = params.get("madde") || "limon";
+        updateUI(key);
+      })();
+    </script>
+  </body>
+</html>
+
